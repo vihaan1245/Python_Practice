@@ -177,8 +177,10 @@ def load_assets() -> Assets:
         - Use .convert() for background because it has no transparency.
         - Return an Assets object.
     """
-    pass
-
+    images = load_images()
+    sounds, music_notes = load_sounds()
+    background = pg.image.load(BACKGROUND_IMAGE).convert()
+    return Assets(images=images, sounds=sounds, music_notes=music_notes, background=background)
 
 # -----------------------------------------------------------------------------
 # BASIC TEXT HELPER
@@ -188,7 +190,6 @@ class Text:
     """
     Helper class for rendering and drawing text.
     """
-
     def __init__(self, text_font, size, message, color, xpos, ypos):
         """
         TODO:
@@ -197,14 +198,16 @@ class Text:
             - Store the rendered surface.
             - Create a rect with topleft position (xpos, ypos).
         """
-        pass
+        self.font = pg.font.Font(text_font, size)
+        self.surface = self.font.render(message, True, color)
+        self.rect = self.surface.get_rect(topleft=(xpos,ypos))
 
     def draw(self, surface):
         """
         TODO:
             - Draw/blit the text surface on the given surface using its rect.
         """
-        pass
+        surface.blit(self.surface, self.rect)
 
 
 # -----------------------------------------------------------------------------
@@ -215,7 +218,6 @@ class Ship(pg.sprite.Sprite):
     """
     Player ship controlled by LEFT and RIGHT arrow keys.
     """
-
     def __init__(self, assets):
         """
         TODO:
@@ -224,12 +226,14 @@ class Ship(pg.sprite.Sprite):
             - Create rect at SHIP_START_POSITION.
             - Store movement speed as SHIP_SPEED.
         """
-        pass
+        super().__init__()
+        self.image = assets.images["ship"]
+        self.rect = self.image.get_rect(topleft=SHIP_START_POSITION)
+        self.speed = SHIP_SPEED
 
     def update(self, screen, keys, current_time=None):
         """
         Move and draw the ship.
-
         TODO:
             - If LEFT key is pressed and ship is not beyond SHIP_LEFT_LIMIT,
               decrease rect.x by speed.
@@ -237,14 +241,18 @@ class Ship(pg.sprite.Sprite):
               increase rect.x by speed.
             - Draw the ship image on the screen.
         """
-        pass
+        if keys[pg.K_LEFT] and self.rect.x > SHIP_LEFT_LIMIT:
+            self.rect.x -= self.speed
+        if keys[pg.K_RIGHT] and self.rect.x < SHIP_RIGHT_LIMIT:
+            self.rect.x += self.speed
+
+        screen.blit(self.image, self.rect)
 
 
 class Bullet(pg.sprite.Sprite):
     """
     Bullet used by both player and enemies.
     """
-
     def __init__(self, assets, xpos, ypos, direction, speed, image_name, side):
         """
         TODO:
@@ -602,11 +610,27 @@ class SpaceInvaders:
               and enemy-score-guide Text objects.
             - Create three Life icons and livesGroup.
         """
-        pass
+        pg.mixer.pre_init(44100, -16, 1, 4096)
+        pg.init()
+        self.clock = pg.time.Clock()
+        pg.display.set_caption("Space Invaders Game!")
+        self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.assets = load_assets()
+        self.start_game = False
+        self.main_screen = True
+        self.game_over = False
+        self.enemy_default_position = ENEMY_DEFAULT_POSITION
+        self._create_static_text()
+
 
     # ------------------------------------------------------------------
     # RESET AND CREATION HELPERS
     # ------------------------------------------------------------------
+
+    def _create_static_text(self):
+        self.title_text = Text(FONT_FILE, 50, "SPACE INVADER GAME", WHITE, 200,300)
+        self.instruction_text = Text(FONT_FILE, 35, "PRESS ANY KEY TO CONTINUE", WHITE, 200,400)
+
 
     def reset(self, score):
         """
@@ -836,7 +860,10 @@ class SpaceInvaders:
                     - Call reset(0).
                     - Set start_game = True and main_screen = False.
         """
-        pass
+        self.screen.blit(self.assets.background, (0,0))
+        self.title_text.draw(self.screen)
+        self.instruction_text.draw(self.screen)
+        # self.screen.display.update()
 
     def draw_next_round_screen(self, current_time):
         """
@@ -895,7 +922,13 @@ class SpaceInvaders:
             - Update display.
             - Limit FPS using self.clock.tick(FPS).
         """
-        pass
+        while True:
+            if self.main_screen:
+                self.draw_main_screen()
+            elif self.start_game:
+                self.draw_active_game()
+            elif self.game_over:
+                self.create_game_over()
 
 
 # -----------------------------------------------------------------------------
@@ -920,8 +953,8 @@ def main():
         7. Confirm collisions, scoring, lives, and game-over logic.
     """
 
-    # game = SpaceInvaders()
-    # game.main()
+    game = SpaceInvaders()
+    game.main()
     pass
 
 
