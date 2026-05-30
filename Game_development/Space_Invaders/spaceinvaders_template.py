@@ -25,7 +25,7 @@ IMPORTANT:
         6. Add collisions, scoring, lives, and game-over logic.
         7. Add sounds, mystery ship, explosions, blockers, and next round.
 """
-
+import sys
 from dataclasses import dataclass
 from os.path import abspath, dirname, join
 
@@ -266,7 +266,13 @@ class Bullet(pg.sprite.Sprite):
             - direction = 1 means bullet moves downward.
             - side can be "center", "left", or "right".
         """
-        pass
+        super().__init__()
+        self.image = assets.images[image_name]
+        self.rect = self.image.get_rect(topleft=(xpos, ypos))
+        self.direction = direction
+        self.speed = speed
+        self.side = side
+        self.image_name = image_name
 
     def update(self, screen, keys=None, current_time=None):
         """
@@ -277,7 +283,11 @@ class Bullet(pg.sprite.Sprite):
             - Update rect.y by speed * direction.
             - If bullet goes above top boundary or below screen, kill it.
         """
-        pass
+        screen.blit(self.image, self.rect)
+        self.rect.y += self.speed + self.direction
+        if (self.rect.y < 15) or (self.rect.y > SCREEN_HEIGHT):
+            self.kill()
+
 
 
 class Enemy(pg.sprite.Sprite):
@@ -294,7 +304,15 @@ class Enemy(pg.sprite.Sprite):
             - Set animation index to 0.
             - Set current image and rect.
         """
-        pass
+        super().__init__()
+        self.assets = assets
+        self.row = row
+        self.column = column
+        self.images = []
+        self.load_images()
+        self.animation_index = 0
+        self.current_image = self.images[self.animation_index]
+        self.rect = self.current_image.get_rect()
 
     def load_images(self):
         """
@@ -306,7 +324,15 @@ class Enemy(pg.sprite.Sprite):
             - Scale each image to (ENEMY_WIDTH, ENEMY_HEIGHT).
             - Store both frames in self.images.
         """
-        pass
+        image_names = []
+        if self.row == 0:
+            image_names = ["enemy1_2", "enemy1_1"]
+        elif self.row in (1,2):
+            image_names = ["enemy2_2", "enemy2_1"]
+        else:
+            image_names = ["enemy3_2", "enemy3_1"]
+
+        self.images = [pg.transform.scale(self.assets.images[name], (ENEMY_WIDTH, ENEMY_HEIGHT)) for name in image_names]
 
     def toggle_image(self):
         """
@@ -317,14 +343,17 @@ class Enemy(pg.sprite.Sprite):
             - If index reaches length of images, reset to 0.
             - Update self.image.
         """
-        pass
+        self.animation_index += 1
+        if self.animation_index >= len(self.images):
+            self.animation_index = 0
+        self.current_image = self.images[self.animation_index]
 
     def update(self, screen, *args):
         """
         TODO:
             - Draw enemy image on screen.
         """
-        pass
+        screen.blit(self.images, self.rect)
 
 
 class EnemiesGroup(pg.sprite.Group):
@@ -344,7 +373,20 @@ class EnemiesGroup(pg.sprite.Group):
             - Compute bottom position of the enemy grid.
             - Track alive columns so enemies can shoot from valid columns.
         """
-        pass
+        super().__init__()
+        self.columns = columns
+        self.rows = rows
+        self.enemy_list = [[None] * columns for _ in range(rows)]
+        self.moveTime = 600
+        self.direction = 1
+        self.rightMoves = 30
+        self.leftMoves = 30
+        self.moveNumber = 15
+        self.timer = pg.time.get_ticks()
+        self.bottom = start_y + ((rows - 1)*ENEMY_Y_GAP) + ENEMY_HEIGHT
+        self.alive_columns = list(range(columns))
+        self.left_alive_columns = 0
+        self.right_alive_columns = columns - 1
 
     def update(self, screen, current_time):
         """
@@ -360,7 +402,9 @@ class EnemiesGroup(pg.sprite.Group):
                 * Update bottom position.
             - Toggle each enemy image whenever it moves.
         """
-        pass
+        if current_time - self.timer <= self.moveTime:
+            return
+
 
     def add_internal(self, *sprites):
         """
@@ -621,6 +665,11 @@ class SpaceInvaders:
         self.game_over = False
         self.enemy_default_position = ENEMY_DEFAULT_POSITION
         self._create_static_text()
+        self.all_blockers = []
+        self.life_1 = Life(self.assets, 715, 3)
+        self.life_2 = Life(self.assets, 742, 3)
+        self.life_3 = Life(self.assets, 769, 3)
+        self.lives_group = pg.sprite.Group(self.life_1, self.life_2, self.life_3)
 
 
     # ------------------------------------------------------------------
@@ -863,6 +912,18 @@ class SpaceInvaders:
         self.screen.blit(self.assets.background, (0,0))
         self.title_text.draw(self.screen)
         self.instruction_text.draw(self.screen)
+        self.create_main_menu()
+        while True:
+            for event in pg.event.get():
+                if self.should_exit(event):
+                    pg.quit()
+                    sys.exit()
+                if event.type == pg.KEYUP:
+                    self.all_blockers = pg.sprite.Group(self.make_blockers(0), self.make_blockers(1), self.make_blockers(2), self.make_blockers(3))
+                    self.lives_group.add(self.life_1, self.life_2, self.life_3)
+                    self.reset(0)
+                    self.start_game = True
+                    self.main_screen = False
         # self.screen.display.update()
 
     def draw_next_round_screen(self, current_time):
