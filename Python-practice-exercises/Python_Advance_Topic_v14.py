@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from collections import Counter
+
+import infinity
+
 
 def ex06_group_by_anagram_count(words: list[str]) -> dict[int, list[str]]:
     """
@@ -462,7 +466,20 @@ def ex10_min_window_substring(s: str, t: str) -> str:
     #       a. update the best/smallest window
     #       b. shrink from the left side
     # 7. Return the smallest valid substring, or "" if no such substring exists.
-    raise NotImplementedError
+    if not s or not t:
+        return ""
+
+    required_char = Counter(t)
+    window_counts = {}
+
+    required = len(required_char)
+    formed = 0
+
+    left = 0
+    best_length = float("inf")
+    best_start = 0
+
+
 
 
 # =========================
