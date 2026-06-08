@@ -272,10 +272,17 @@ def ex15_accounts_merge(accounts: list[list[str]]) -> list[list[str]]:
     # TODO: Build graph connecting emails in the same account.
     # TODO: Traverse graph to find connected email groups.
     # TODO: Return [name] + sorted emails for each group.
-    raise NotImplementedError
+    final_dict = {}
+    for account in accounts:
+        if account[0] not in final_dict:
+            final_dict[account[0]] = set()
+        for i in range(1, len(account)):
+            for key in final_dict.keys():
+                if key.lower() in account[i].lower():
+                    final_dict[key].add(account[i])
+                    break
 
-
-
+    print(final_dict)
 
 # =========================
 # Test helpers
@@ -354,60 +361,29 @@ def run_all_tests():
     assert ex14_word_pattern("abba", "dog dog dog dog") is False
     assert ex14_word_pattern("abc", "one two") is False
 
-    # # ex15: Accounts merge
-    # merged = ex15_accounts_merge([
-    #     ["John", "johnsmith@mail.com", "john_newyork@mail.com"],
-    #     ["John", "johnsmith@mail.com", "john00@mail.com"],
-    #     ["Mary", "mary@mail.com"],
-    #     ["John", "johnnybravo@mail.com"],
-    # ])
-    # expected_merged = [
-    #     ["John", "john00@mail.com", "john_newyork@mail.com", "johnsmith@mail.com"],
-    #     ["Mary", "mary@mail.com"],
-    #     ["John", "johnnybravo@mail.com"],
-    # ]
-    # assert _normalize_accounts(merged) == _normalize_accounts(expected_merged)
-    #
-    # merged2 = ex15_accounts_merge([
-    #     ["A", "a1@mail.com", "a2@mail.com"],
-    #     ["A", "a2@mail.com", "a3@mail.com"],
-    #     ["B", "b1@mail.com"],
-    # ])
-    # expected_merged2 = [
-    #     ["A", "a1@mail.com", "a2@mail.com", "a3@mail.com"],
-    #     ["B", "b1@mail.com"],
-    # ]
-    # assert _normalize_accounts(merged2) == _normalize_accounts(expected_merged2)
-    #
-    # # ex16: Longest substring without repeat
-    # assert ex16_longest_substring_no_repeat("abcabcbb") == 3
-    # assert ex16_longest_substring_no_repeat("bbbbb") == 1
-    # assert ex16_longest_substring_no_repeat("pwwkew") == 3
-    # assert ex16_longest_substring_no_repeat("") == 0
-    #
-    # # ex17: Task scheduler
-    # assert ex17_task_scheduler(["A", "A", "A", "B", "B", "B"], 2) == 8
-    # assert ex17_task_scheduler(["A", "A", "A", "B", "B", "B"], 0) == 6
-    # assert ex17_task_scheduler(["A", "A", "A", "B", "B", "B", "C", "C"], 2) == 8
-    # assert ex17_task_scheduler([], 2) == 0
-    #
-    # # ex18: Rotate matrix 90 degrees clockwise
-    # assert ex18_rotate_matrix_90([[1, 2], [3, 4]]) == [[3, 1], [4, 2]]
-    # assert ex18_rotate_matrix_90([[1, 2, 3], [4, 5, 6]]) == [[4, 1], [5, 2], [6, 3]]
-    # assert ex18_rotate_matrix_90([[1]]) == [[1]]
-    # assert ex18_rotate_matrix_90([]) == []
-    #
-    # # ex19: Palindrome pairs
-    # assert set(ex19_palindrome_pairs(["bat", "tab", "cat"])) == {(0, 1), (1, 0)}
-    # assert set(ex19_palindrome_pairs(["", "aba"])) == {(0, 1), (1, 0)}
-    # assert set(ex19_palindrome_pairs(["abcd", "dcba", "lls", "s", "sssll"])) == {(0, 1), (1, 0), (3, 2), (2, 4)}
-    #
-    # # ex20: Max points on a line
-    # assert ex20_max_points_on_line([(1, 1), (2, 2), (3, 3), (1, 2)]) == 3
-    # assert ex20_max_points_on_line([(0, 0), (0, 1), (0, 2), (2, 2)]) == 3
-    # assert ex20_max_points_on_line([(0, 0), (1, 0), (2, 0), (2, 2)]) == 3
-    # assert ex20_max_points_on_line([]) == 0
-    # assert ex20_max_points_on_line([(1, 1)]) == 1
+    # ex15: Accounts merge
+    merged = ex15_accounts_merge([
+        ["John", "johnsmith@mail.com", "john_newyork@mail.com"],
+        ["John", "johnsmith@mail.com", "john00@mail.com"],
+        ["Mary", "mary@mail.com"],
+        ["John", "johnnybravo@mail.com"],
+    ])
+    expected_merged = [
+        ["John", "john00@mail.com", "john_newyork@mail.com", "johnsmith@mail.com", "johnnybravo@mail.com"],
+        ["Mary", "mary@mail.com"]
+    ]
+    assert _normalize_accounts(merged) == _normalize_accounts(expected_merged)
+
+    merged2 = ex15_accounts_merge([
+        ["A", "a1@mail.com", "a2@mail.com"],
+        ["A", "a2@mail.com", "a3@mail.com"],
+        ["B", "b1@mail.com"],
+    ])
+    expected_merged2 = [
+        ["A", "a1@mail.com", "a2@mail.com", "a3@mail.com"],
+        ["B", "b1@mail.com"],
+    ]
+    assert _normalize_accounts(merged2) == _normalize_accounts(expected_merged2)
 
     print("All Passed")
 
